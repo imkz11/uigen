@@ -1,12 +1,12 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import type { ToolInvocation } from "ai";
+import type { DynamicToolUIPart } from "ai";
 
-function getToolLabel(toolName: string, args: Record<string, string>): string {
+function getToolLabel(toolName: string, input: Record<string, any>): string {
   if (toolName === "str_replace_editor") {
-    const path = args?.path ?? "";
-    switch (args?.command) {
+    const path = input?.path ?? "";
+    switch (input?.command) {
       case "create": return `Creating ${path}`;
       case "str_replace": return `Editing ${path}`;
       case "insert": return `Editing ${path}`;
@@ -16,10 +16,10 @@ function getToolLabel(toolName: string, args: Record<string, string>): string {
   }
 
   if (toolName === "file_manager") {
-    switch (args?.command) {
-      case "rename": return `Renaming ${args?.path} → ${args?.new_path}`;
-      case "delete": return `Deleting ${args?.path}`;
-      case "list": return `Listing ${args?.path}`;
+    switch (input?.command) {
+      case "rename": return `Renaming ${input?.path} → ${input?.new_path}`;
+      case "delete": return `Deleting ${input?.path}`;
+      case "list": return `Listing ${input?.path}`;
       default: return `Managing files`;
     }
   }
@@ -28,13 +28,13 @@ function getToolLabel(toolName: string, args: Record<string, string>): string {
 }
 
 interface ToolCallBadgeProps {
-  toolInvocation: ToolInvocation;
+  part: DynamicToolUIPart;
 }
 
-export function ToolCallBadge({ toolInvocation }: ToolCallBadgeProps) {
-  const { toolName, args, state } = toolInvocation;
-  const done = state === "result";
-  const label = getToolLabel(toolName, args);
+export function ToolCallBadge({ part }: ToolCallBadgeProps) {
+  const { toolName, input, state } = part;
+  const done = state === "result" || state === "output-available";
+  const label = getToolLabel(toolName, (input as Record<string, any>) ?? {});
 
   return (
     <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 bg-neutral-50 rounded-lg text-xs border border-neutral-200">
