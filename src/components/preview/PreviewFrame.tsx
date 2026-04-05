@@ -14,6 +14,9 @@ export function PreviewFrame() {
   const { getAllFiles, refreshTrigger } = useFileSystem();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const isDarkRef = useRef(isDark);
+  isDarkRef.current = isDark;
+  const iframeHasContentRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [entryPoint, setEntryPoint] = useState<string>("/App.jsx");
   const [isFirstLoad, setIsFirstLoad] = useState(true);
@@ -78,7 +81,7 @@ export function PreviewFrame() {
         }
 
         const { importMap, styles, errors } = createImportMap(files);
-        const previewHTML = createPreviewHTML(foundEntryPoint, importMap, styles, errors, isDark);
+        const previewHTML = createPreviewHTML(foundEntryPoint, importMap, styles, errors, isDarkRef.current);
 
         if (iframeRef.current) {
           const iframe = iframeRef.current;
@@ -89,6 +92,7 @@ export function PreviewFrame() {
             "allow-scripts allow-same-origin allow-forms"
           );
           iframe.srcdoc = previewHTML;
+          iframeHasContentRef.current = true;
 
           setError(null);
         }
@@ -99,7 +103,13 @@ export function PreviewFrame() {
     };
 
     updatePreview();
-  }, [refreshTrigger, getAllFiles, entryPoint, error, isFirstLoad, isDark]);
+  }, [refreshTrigger, getAllFiles, entryPoint, error, isFirstLoad]);
+
+  // Send theme changes to the existing iframe without reloading it
+  useEffect(() => {
+    if (!iframeHasContentRef.current || !iframeRef.current?.contentWindow) return;
+    iframeRef.current.contentWindow.postMessage({ type: "theme-change", isDark }, "*");
+  }, [isDark]);
 
   if (error) {
     if (error === "firstLoad") {

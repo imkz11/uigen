@@ -316,6 +316,15 @@ export function createPreviewHTML(
   <title>Preview</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
+  <script>
+    window.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'theme-change') {
+        document.documentElement.classList.toggle('dark', e.data.isDark);
+        document.body.style.backgroundColor = e.data.isDark ? '#171717' : 'transparent';
+        document.body.style.color = e.data.isDark ? '#f5f5f5' : 'inherit';
+      }
+    });
+  </script>
   <style>
     body {
       margin: 0;
